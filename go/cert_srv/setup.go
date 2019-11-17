@@ -209,7 +209,7 @@ func setMessenger(cfg *config.Config, router snet.Router) error {
 		SVCRouter:             messenger.NewSVCRouter(itopo.Provider()),
 	}
 	var err error
-	msgr, err = nc.Messenger()
+	msgr, err = nc.Messenger(env.Dispatcher())
 	if err != nil {
 		return common.NewBasicError("Unable to initialize SCION Messenger", err)
 	}

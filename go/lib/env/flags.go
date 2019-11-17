@@ -20,12 +20,14 @@ import (
 	"os"
 
 	"github.com/scionproto/scion/go/lib/config"
+	"github.com/scionproto/scion/go/lib/sock/reliable"
 )
 
 var (
 	configFile string
 	helpConfig bool
 	version    bool
+	dispatcher string
 )
 
 // AddFlags adds the config and sample flags.
@@ -33,6 +35,12 @@ func AddFlags() {
 	flag.StringVar(&configFile, "config", "", "TOML config file.")
 	flag.BoolVar(&helpConfig, "help-config", false, "Output sample commented config file.")
 	flag.BoolVar(&version, "version", false, "Output version information and exit.")
+	flag.StringVar(&dispatcher, "dispatcher", reliable.DefaultDispPath, "Path to dispatcher socket")
+}
+
+// Dispatcher returns the dispatcher socket path passed through the flag.
+func Dispatcher() string {
+	return dispatcher
 }
 
 // ConfigFile returns the config file path passed through the flag.

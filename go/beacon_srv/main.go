@@ -145,7 +145,7 @@ func realMain() int {
 		TrustStore:            trustStore,
 		SVCRouter:             messenger.NewSVCRouter(itopo.Provider()),
 	}
-	msgr, err := nc.Messenger()
+	msgr, err := nc.Messenger(env.Dispatcher())
 	if err != nil {
 		log.Crit(infraenv.ErrAppUnableToInitMessenger, "err", err)
 		return 1

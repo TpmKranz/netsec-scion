@@ -89,12 +89,12 @@ type NetworkConfig struct {
 
 // Messenger initializes a SCION control-plane RPC endpoint using the specified
 // configuration.
-func (nc *NetworkConfig) Messenger() (infra.Messenger, error) {
+func (nc *NetworkConfig) Messenger(dispatcher string) (infra.Messenger, error) {
 	var quicConn net.PacketConn
 	var quicAddress string
 	if nc.QUIC.Address != "" {
 		var err error
-		quicConn, err = nc.initQUICSocket()
+		quicConn, err = nc.initQUICSocket(dispatcher)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func (nc *NetworkConfig) Messenger() (infra.Messenger, error) {
 		log.Trace("QUIC conn initialized", "local_addr", quicAddress)
 	}
 
-	conn, err := nc.initUDPSocket(quicAddress)
+	conn, err := nc.initUDPSocket(quicAddress, dispatcher)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (nc *NetworkConfig) AddressRewriter(
 // be delivered to this socket, which can be configured to reply to SVC
 // resolution requests. If argument address is not the empty string, it will be
 // included as the QUIC address in SVC resolution replies.
-func (nc *NetworkConfig) initUDPSocket(quicAddress string) (net.PacketConn, error) {
+func (nc *NetworkConfig) initUDPSocket(quicAddress string, dispatcher string) (net.PacketConn, error) {
 	reply := messenger.BuildReply(nc.Public.Host)
 	if quicAddress != "" {
 		reply.Transports[svc.QUIC] = quicAddress
@@ -180,7 +180,7 @@ func (nc *NetworkConfig) initUDPSocket(quicAddress string) (net.PacketConn, erro
 		return nil, common.NewBasicError("Unable to build SVC resolution reply", err)
 	}
 
-	dispatcherService := reliable.NewDispatcherService("")
+	dispatcherService := reliable.NewDispatcherService(dispatcher)
 	if nc.ReconnectToDispatcher {
 		dispatcherService = reconnect.NewDispatcherService(dispatcherService)
 	}
@@ -206,8 +206,8 @@ func (nc *NetworkConfig) initUDPSocket(quicAddress string) (net.PacketConn, erro
 	return conn, nil
 }
 
-func (nc *NetworkConfig) initQUICSocket() (net.PacketConn, error) {
-	dispatcherService := reliable.NewDispatcherService("")
+func (nc *NetworkConfig) initQUICSocket(dispatcher string) (net.PacketConn, error) {
+	dispatcherService := reliable.NewDispatcherService(dispatcher)
 	if nc.ReconnectToDispatcher {
 		dispatcherService = reconnect.NewDispatcherService(dispatcherService)
 	}
